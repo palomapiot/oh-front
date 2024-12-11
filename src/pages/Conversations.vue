@@ -3,7 +3,7 @@
     <v-row>
       <v-col cols="3">
         <!-- Conversations List -->
-        <v-card>
+        <v-card class="conversation-card">
           <v-card-title>
             <h3>My Conversations</h3>
           </v-card-title>
@@ -26,16 +26,25 @@
       </v-col>
       <v-col cols="9">
         <!-- Current Conversation -->
-        <v-card>
+        <v-card class="conversation-card">
           <v-card-title>
             <h2>{{ currentConversation ? currentConversation.title : 'Select a conversation' }}</h2>
           </v-card-title>
-          <v-card-text class="d-flex flex-column" style="height: 70vh; overflow-y: auto;">
+          <v-card-text class="d-flex flex-column conversation-text" style="height: 70vh; overflow-y: auto;">
             <div v-if="currentConversation">
                 <div v-for="(message, index) in currentConversation.messages" :key="index" :class="['message-wrapper', message.sender === 'user' ? 'user-wrapper' : 'bot-wrapper']">
-                    <div :class="{'user-message': message.sender === 'user', 'bot-message': message.sender === 'bot'}">
-                        <strong>{{ message.sender }}:</strong> {{ message.text }}
-                    </div>
+                    <!-- User's message rendering -->
+                    <div
+                      v-if="message.sender === 'user'"
+                      class="user-message"
+                      v-html="message.text"
+                    ></div>
+                    <!-- Bot's message rendering -->
+                    <div
+                      v-else
+                      class="bot-message"
+                      v-html="message.text"
+                    ></div>
                 </div>
 
             </div>
@@ -43,17 +52,16 @@
               <p>No conversation selected. Please select a conversation to start chatting.</p>
             </div>
           </v-card-text>
-          <v-card-actions class="d-flex justify-end">            
-            <v-textarea
-              v-model="newMessage"
-              label="Type your message..."
-              @keyup.enter="sendMessage"
-              variant="outlined"
-              auto-grow
-              rows="2"
-              class="flex-grow-1 integrated-input"
-              @keyup="handleKeyDown"
-            ></v-textarea>
+          <v-card-actions class="d-flex justify-end chat-input-actions">            
+              <v-textarea
+                v-model="newMessage"
+                placeholder="Type your message..."
+                variant="outlined"
+                rows="2"
+                auto-grow
+                class="flex-grow-1  integrated-input"
+                @keydown="handleKeyDown"
+              />
             <v-btn @click="sendMessage" color="primary">Send</v-btn>
           </v-card-actions>
         </v-card>
@@ -64,6 +72,7 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue'
+import DOMPurify from 'dompurify';
 
 // Sample data for conversations
 const conversations = ref([
@@ -109,9 +118,11 @@ const selectConversation = (conversation) => {
 // Method to send a message
 const sendMessage = () => {
   if (newMessage.value.trim() && currentConversation.value) {
+    const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
+
     currentConversation.value.messages.push({
       sender: 'user',
-      text: newMessage.value,
+      text: sanitizedMessage,
     })
     // Simulate bot response
     currentConversation.value.messages.push({
@@ -134,6 +145,33 @@ const handleKeyDown = (event: KeyboardEvent) => {
 </script>
 
 <style scoped>
+.conversation-card {
+  display: flex;
+  flex-direction: column;
+  height: calc(85vh - 10px); /* Adjust height to fill the viewport */
+}
+
+.conversation-text {
+  flex: 1; /* Ensures this section takes all available space */
+  overflow-y: auto; /* Adds scrolling to the messages */
+  padding: 16px; /* Add padding for better readability */
+}
+
+.chat-input-actions {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-top: 1px solid #e0e0e0; /* Separate input from messages visually */
+}
+
+.chat-textarea {
+  flex: 1;
+  margin-right: 16px;
+  border-radius: 16px;
+  border: none;
+  box-shadow: none;
+}
+
 .selected-conversation {
   background-color: #f0f0f0;
 }
@@ -164,4 +202,10 @@ const handleKeyDown = (event: KeyboardEvent) => {
 .bot-wrapper {
   justify-content: flex-start; /* Align bot messages to the left */
 }
+
+.user-message, .bot-message {
+  white-space: pre-wrap; /* Preserves spaces and line breaks */
+  word-wrap: break-word; /* Ensures long words are wrapped */
+}
+
 </style>

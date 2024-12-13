@@ -177,14 +177,14 @@ const handleKeyDown = (event: KeyboardEvent) => {
 }
 
 .user-message {
-  background-color: #d2027b1b;
+  background-color: #c6007e1b;
   border-radius: 30px;
   padding: 15px;
   max-width: 70%; 
 }
 
 .bot-message {
-  background-color: #d2027b7f;
+  background-color: #c6007e7f;
   border-radius: 30px;
   padding: 15px;
   max-width: 70%;

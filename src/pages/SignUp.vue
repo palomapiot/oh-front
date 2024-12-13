@@ -1,64 +1,77 @@
 <template>
-  <v-container>
-    <v-card>
-      <v-card-title>
-        <h2>Create Account</h2>
-      </v-card-title>
-      <v-card-text>
-        <v-form ref="form" v-model="valid" @submit.prevent="submitForm">
-          <v-text-field
-            v-model="username"
-            :rules="usernameRules"
-            label="Username"
-            required
-          ></v-text-field>
-          
-          <v-text-field
-            v-model="password"
-            :rules="passwordRules"
-            label="Password"
-            type="password"
-            required
-          ></v-text-field>
-          
-          <v-text-field
-            v-model="confirmPassword"
-            :rules="confirmPasswordRules"
-            label="Confirm Password"
-            type="password"
-            required
-          ></v-text-field>
-          
-          <v-btn type="submit" color="primary">Sign Up</v-btn>
-        </v-form>
-      </v-card-text>
-    </v-card>
+    <v-container fluid fill-height class="d-flex align-center justify-center">
+      <v-row class="flex-grow-1" justify="center" align="center">
 
-    <div style="text-align: center; margin-top: 16px;">
-      <p>
-        Already have an account? 
-        <router-link to="/signin" style="color: #d2027b; text-decoration: none;">Sign In</router-link>
-      </p>
-    </div>
+        <v-col cols="12" md="4"> <!-- Illustration Column -->
+            <v-img src="@/assets/signin.svg" alt="Illustration" contain />
+        </v-col>
 
-    <v-snackbar
-      v-model="snackbar"
-      :color="snackbarColor"
-      timeout="3000"
-      variant="outlined"
-      multi-line
-    >
-      {{ snackbarMessage }}
-      <template v-slot:actions>
-        <v-btn
-          color="black"
-          variant="text"
-          @click="snackbar = false"
+        <v-col cols="12" md="4">
+          <v-card>
+            <v-card-title>
+              <h2>Create Account</h2>
+            </v-card-title>
+            <v-card-text>
+              <v-form ref="form" v-model="valid" @submit.prevent="submitForm">
+                <v-text-field
+                  v-model="username"
+                  :rules="usernameRules"
+                  label="Username"
+                  required
+                ></v-text-field>
+                
+                <v-text-field
+                  v-model="password"
+                  :rules="passwordRules"
+                  label="Password"
+                  type="password"
+                  required
+                ></v-text-field>
+                
+                <v-text-field
+                  v-model="confirmPassword"
+                  :rules="confirmPasswordRules"
+                  label="Confirm Password"
+                  type="password"
+                  required
+                ></v-text-field>
+                
+                <v-row justify="center">
+                    <v-col cols="auto">
+                        <v-btn rounded="xl" type="submit" color="primary">Sign Up</v-btn>
+                    </v-col>
+                </v-row>
+              </v-form>
+            </v-card-text>
+          </v-card>
+          <div style="text-align: center; margin-top: 16px;">
+            <p>
+              Already have an account? 
+              <router-link to="/signin" style="color: #c6007e; text-decoration: none;">Sign In</router-link>
+            </p>
+          </div>
+        </v-col>
+
+
+        <v-snackbar
+          v-model="snackbar"
+          :color="snackbarColor"
+          timeout="3000"
+          variant="outlined"
+          multi-line
         >
-          Close
-        </v-btn>
-      </template>
-    </v-snackbar>
+          {{ snackbarMessage }}
+          <template v-slot:actions>
+            <v-btn
+              color="black"
+              variant="text"
+              @click="snackbar = false"
+            >
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+      </v-row>
   </v-container>
 </template>
 
@@ -154,5 +167,7 @@ const goToSignIn = () => {
 </script>
 
 <style scoped>
-/* You can add styles here if needed */
+.v-container {
+    min-height: 70vh; /* Ensure the container takes the full height of the viewport */
+}
 </style>

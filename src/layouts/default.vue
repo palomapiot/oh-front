@@ -1,12 +1,18 @@
 <template>
   <v-app>
-    <v-app-bar app color="primary" dark>
+    <v-app-bar app color="primary" :elevation="1">
         <!-- Navigation Drawer for Mobile -->
         <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
   
         <!-- Logo/Brand -->
-        <v-toolbar-title>
-          Online Harms Chat
+        <img
+          src="@/assets/IRLAB_LOGO.png"
+          alt="Logo"
+          class="mr-2"
+          contain
+        />
+        <v-toolbar-title class="code-font">
+          OH! Chatbot
         </v-toolbar-title>
   
         <!-- Navigation Links -->
@@ -63,8 +69,11 @@
 </script>
 
 <style scoped>
-/* Add any additional custom styles here */
 .v-btn {
   font-weight: bold;
+}
+.code-font {
+    font-family: 'Fira Code', monospace; 
+    font-size: 2.4rem;
 }
 </style>

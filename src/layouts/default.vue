@@ -12,14 +12,14 @@
           contain
         />
         <v-toolbar-title class="code-font">
-          OH! Chatbot
+          Oh! Chatbot
         </v-toolbar-title>
   
         <!-- Navigation Links -->
         <v-spacer></v-spacer>
-        <v-btn text class="d-none d-md-flex" @click="goToHome">Home</v-btn>
-        <v-btn text class="d-none d-md-flex" v-if="auth.isLoggedIn" @click="goToConversations">Conversations</v-btn>
-        <v-btn text class="d-none d-md-flex" @click="goToAbout">About</v-btn>
+        <v-btn class="d-none d-md-flex" @click="goToHome">Home</v-btn>
+        <v-btn class="d-none d-md-flex" v-if="auth.isLoggedIn" @click="goToConversations">Conversations</v-btn>
+        <v-btn class="d-none d-md-flex" @click="goToAbout">About</v-btn>
   
         <!-- Sign In/Sign Up -->
         <v-btn outlined color="secondary" class="ml-3" @click="auth.isLoggedIn ? logout() : goToSignIn()">{{ auth.isLoggedIn ? 'Logout' : 'Sign In' }}</v-btn>
@@ -37,35 +37,70 @@
       <router-view />
     </v-main>
 
+    <v-snackbar
+      v-model="snackbar"
+      :color="snackbarColor"
+      timeout="3000"
+      variant="outlined"
+      multi-line
+    >
+      {{ snackbarMessage }}
+      <template v-slot:actions>
+        <v-btn
+          color="black"
+          variant="text"
+          @click="snackbar = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
     <AppFooter />
   </v-app>
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue'
-  import { useRouter } from 'vue-router'
-  import { useAuthStore } from '@/stores/auth'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import axios from 'axios'
 
-  const auth = useAuthStore()
-  const router = useRouter()
-  const drawer = ref(false)
-  
-  const goToHome = () => {
-    router.push('/')
-  }
-  const goToConversations = () => {
-    router.push('/conversations')
-  }
-  const goToAbout = () => {
-    router.push('/about')
-  }
-  const goToSignIn = () => {
-    router.push('/signin')
-  }
-  const logout = () => {
-    auth.logout()
-    router.push('/')
-  }
+const auth = useAuthStore()
+const router = useRouter()
+const drawer = ref(false)
+const snackbar = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('')
+
+const goToHome = () => {
+  router.push('/')
+}
+const goToConversations = () => {
+  router.push('/conversations')
+}
+const goToAbout = () => {
+  router.push('/about')
+}
+const goToSignIn = () => {
+  router.push('/signin')
+}
+const logout = async () => {
+  await axios.post(
+      'http://192.168.1.115:8080/api/user/logout',
+      { withCredentials: true }
+  ).then(response => {
+    if (response.status === 200) {
+      auth.logout()
+      router.push('/')
+    }
+  })
+  .catch(err => {
+    snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred during sign-up.'
+    snackbarColor.value = 'black'
+    snackbar.value = true
+    throw new Error(err || 'Logout failed.')
+  })
+}
 </script>
 
 <style scoped>

@@ -3,7 +3,7 @@
       <v-row class="flex-grow-1" justify="center" align="center">
 
         <v-col cols="12" md="4"> <!-- Illustration Column -->
-            <v-img src="@/assets/signin.svg" alt="Illustration" contain />
+            <v-img src="@/assets/signup.svg" alt="Illustration" contain />
         </v-col>
 
         <v-col cols="12" md="4">
@@ -17,7 +17,10 @@
                   v-model="username"
                   :rules="usernameRules"
                   label="Username"
+                  variant="outlined"
                   required
+                  clearable
+                  style="margin-bottom: 16px;"
                 ></v-text-field>
                 
                 <v-text-field
@@ -25,7 +28,10 @@
                   :rules="passwordRules"
                   label="Password"
                   type="password"
+                  variant="outlined"
                   required
+                  clearable
+                  style="margin-bottom: 16px;"
                 ></v-text-field>
                 
                 <v-text-field
@@ -33,7 +39,10 @@
                   :rules="confirmPasswordRules"
                   label="Confirm Password"
                   type="password"
+                  variant="outlined"
                   required
+                  clearable
+                  style="margin-bottom: 16px;"
                 ></v-text-field>
                 
                 <v-row justify="center">
@@ -110,60 +119,39 @@ const confirmPasswordRules = [
 
 const submitForm = async () => {
   if (valid.value) {
-    try {
-      // Call the backend API
-      /*const response = await axios.post(
-        'https://your-backend.com/signup',
-        { username: username.value, password: password.value },
-        { withCredentials: true }
-      )*/
-
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Mock response
-      const response = {
-        status: 200,
-        data: {
-          success: true,
-          message: 'Sign up successful!',
-          user: {
-            username: 'paloma',
-            cookie: '1234'
-          }
-        },
-      };
-
+    // Call the backend API
+    await axios.post(
+      'http://192.168.1.115:8080/api/user/signup',
+      { username: username.value, password: password.value },
+      { withCredentials: true }
+    ).then(response => {
+      console.log(response)
       // Handle success response
-      if (response.status === 200 && response.data.success) {
-        authStore.login(response.data.user) 
+      if (response.status === 200) {
+        // Update global state for login
+        authStore.login(username.value) 
 
         snackbarMessage.value = 'Sign up successful!'
-        snackbarColor.value = 'success'
+        snackbarColor.value = '#c6007e'
         snackbar.value = true
-
-        // Update global or parent state for login (e.g., with Pinia or Vuex)
-        console.log('User account created successfully.')
-        console.log('User is now logged in.')
+        router.push('/conversations')
       } else {
         throw new Error(response.data.message || 'Sign-up failed.')
       }
-    } catch (error) {
-      // Handle error responses
-      snackbarMessage.value = error.message || 'An error occurred during sign-up.'
-      snackbarColor.value = 'error'
+    })
+    .catch(err => {
+      snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred during sign-up.'
+      snackbarColor.value = 'black'
       snackbar.value = true
-    }
+      throw new Error(err || 'Sign-up failed.')
+    })
   } else {
     snackbarMessage.value = 'Please fix the errors in the form.'
-    snackbarColor.value = 'error'
+    snackbarColor.value = 'black'
     snackbar.value = true
   }
-  router.push('/conversations')
 }
 
-const goToSignIn = () => {
-  router.push('/signin') // Navigate to the Sign In page
-}
 </script>
 
 <style scoped>

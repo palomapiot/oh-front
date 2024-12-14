@@ -74,8 +74,22 @@
 import { ref } from 'vue'
 import DOMPurify from 'dompurify';
 
+// TODO: load existing conversations
+// TODO: send messages and add new responses
+
+interface Message {
+  sender: 'user' | 'bot';
+  text: string;
+}
+
+interface Conversation {
+  title: string;
+  lastMessage: string;
+  messages: Message[];
+}
+
 // Sample data for conversations
-const conversations = ref([
+const conversations = ref<Conversation[]>([
   {
     title: 'Conversation 1',
     lastMessage: 'See you later!',
@@ -104,14 +118,14 @@ const conversations = ref([
   },
 ])
 
-const selectedConversation = ref(null)
+const selectedConversation = ref<Conversation | null>(null)
 const newMessage = ref('')
 
 // Computed property to get the currently selected conversation
-const currentConversation = computed(() => selectedConversation.value)
+const currentConversation = computed<Conversation | null>(() => selectedConversation.value)
 
 // Method to select a conversation
-const selectConversation = (conversation) => {
+const selectConversation = (conversation: Conversation) => {
   selectedConversation.value = conversation
 }
 
@@ -184,7 +198,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
 }
 
 .bot-message {
-  background-color: #c6007e7f;
+  background-color: #c6007e59;
   border-radius: 30px;
   padding: 15px;
   max-width: 70%;

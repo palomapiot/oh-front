@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <h1 class="code-font">OH! Chatbot</h1>
+    <h1 class="code-font">Oh! Chatbot</h1>
 
     <!-- Step 1 -->
     <v-row align="center">
@@ -9,7 +9,7 @@
       </v-col>
       <v-col cols="6" md="6">
         <h2>Chatbot for Content Moderators Supports</h2>
-        <p>OH (Online Harms) chatbot is designed specifically for content moderators, providing assistance in identifying and addressing harmful content.</p>
+        <p>Oh (Online harms) chatbot is designed specifically for content moderators, providing assistance in identifying and addressing harmful content.</p>
       </v-col>
     </v-row>
 

@@ -12,7 +12,10 @@
                                 v-model="username"
                                 :rules="usernameRules"
                                 label="Username"
+                                variant="outlined"
                                 required
+                                clearable
+                                style="margin-bottom: 16px;"
                             ></v-text-field>
                             
                             <v-text-field
@@ -20,7 +23,10 @@
                                 :rules="passwordRules"
                                 label="Password"
                                 type="password"
+                                variant="outlined"
                                 required
+                                clearable
+                                style="margin-bottom: 16px;"
                             ></v-text-field>
                             
                             <v-row justify="center">
@@ -92,57 +98,37 @@ const usernameRules = [
 const passwordRules = [
     (v: string) => !!v || 'Password is required',
 ]
-  
+
 const submitForm = async () => {
     if (valid.value) {
-        try {
-        // Call the backend API
-        /*const response = await axios.post(
-            'https://your-backend.com/signin',
+        await axios.post(
+            'http://192.168.1.115:8080/api/user/login',
             { username: username.value, password: password.value },
             { withCredentials: true }
-        )*/
+        ).then(response => {
+            if (response.status === 200) {
+                // Update global state for login
+                authStore.login(username.value) 
 
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // Mock response
-        const response = {
-            status: 200,
-            data: {
-            success: true,
-            message: 'Sign in successful!',
-            user: {
-                username: 'paloma',
-                cookie: '1234'
+                snackbarMessage.value = 'Sign in successful!'
+                snackbarColor.value = '#c6007e'
+                snackbar.value = true
+                router.push('/conversations')
+            } else {
+                throw new Error(response.data.message || 'Sign-in failed.')
             }
-            },
-        };
-
-        // Handle success response
-        if (response.status === 200 && response.data.success) {
-            authStore.login(response.data.user) 
-
-            snackbarMessage.value = 'Sign in successful!'
-            snackbarColor.value = 'success'
+        })
+        .catch(err => {
+            snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred during sign-in.'
+            snackbarColor.value = 'black'
             snackbar.value = true
-
-            // Update global or parent state for login (e.g., with Pinia or Vuex)
-            console.log('User is now logged in.')
-        } else {
-            throw new Error(response.data.message || 'Sign-in failed.')
-        }
-        } catch (error) {
-        // Handle error responses
-        snackbarMessage.value = error.message || 'An error occurred during sign-in.'
-        snackbarColor.value = 'error'
-        snackbar.value = true
-        }
+            throw new Error(err || 'Sign-in failed.')
+        })
     } else {
         snackbarMessage.value = 'Please fix the errors in the form.'
-        snackbarColor.value = 'error'
+        snackbarColor.value = 'black'
         snackbar.value = true
     }
-    router.push('/conversations')
 }
   
 </script>

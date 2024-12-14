@@ -9,12 +9,12 @@
           <v-card-text>
             <h2 class="about-text">Empowering Moderators to Combat Online Harms</h2>
             <v-row justify="space-between" align="center">
-              <v-col cols="6">
+              <v-col cols="7">
                 <p class="about-text justified-text" >
                   OH (Online Harms) Chatbot is designed to assist social media content moderators in their crucial mission to maintain safe and inclusive online communities. By leveraging cutting-edge AI technologies, our tool addresses some of the most pressing challenges in content moderation today, including hate speech, fake news, and hyperpartisan content.
                 </p>
               </v-col>
-              <v-col cols="6" class="d-flex justify-center">
+              <v-col cols="5" class="d-flex justify-center">
                 <img src="@/assets/about.svg" alt="Description of the SVG" style="max-width: 100%; height: auto;" />
               </v-col>
             </v-row>
@@ -66,7 +66,7 @@
             <h2 class="about-text">How It Works</h2>
 
             <v-row justify="space-between" align="center">
-              <v-col cols="6">
+              <v-col cols="7">
                 <v-list>
                   <v-list-item>
                     <v-list-item-content>
@@ -92,7 +92,7 @@
                   </v-list-item>
                 </v-list>
               </v-col>
-              <v-col cols="6" class="d-flex justify-center">
+              <v-col cols="5" class="d-flex justify-center">
                 <img src="@/assets/howto.svg" alt="How it works" style="max-width: 100%; height: auto;" />
               </v-col>
             </v-row>
@@ -100,10 +100,10 @@
 
             <h2 class="about-text">Our Commitment</h2>
             <v-row justify="space-between" align="center">
-              <v-col cols="6" class="d-flex justify-center">
+              <v-col cols="5" class="d-flex justify-center">
                 <img src="@/assets/commitment.svg" alt="Commitment" style="max-width: 100%; height: auto;" />
               </v-col>
-              <v-col cols="6">
+              <v-col cols="7">
                 <p class="about-text justified-text">
                   This tool is built with the understanding that social media moderation is a challenging, high-stakes task. Our goal is to reduce the burden on moderators while enhancing their ability to combat online harms effectively. With this software, we aim to create a safer, more respectful digital space for everyone.
                 </p>
@@ -146,7 +146,6 @@ const goBack = () => {
 
 <style scoped>
 .about-card {
-  max-width: 800px;
   margin: auto;
   padding: 24px;
 }

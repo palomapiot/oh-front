@@ -108,7 +108,7 @@ const submitForm = async () => {
         ).then(response => {
             if (response.status === 200) {
                 // Update global state for login
-                authStore.login(username.value) 
+                authStore.login(response.data.token) 
 
                 snackbarMessage.value = 'Sign in successful!'
                 snackbarColor.value = '#c6007e'

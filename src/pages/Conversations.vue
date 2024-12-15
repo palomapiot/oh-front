@@ -154,8 +154,6 @@ const handleKeyDown = (event: KeyboardEvent) => {
       sendMessage(); 
   }
 };
-
-
 </script>
 
 <style scoped>

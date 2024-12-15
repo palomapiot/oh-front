@@ -84,22 +84,9 @@ const goToAbout = () => {
 const goToSignIn = () => {
   router.push('/signin')
 }
-const logout = async () => {
-  await axios.post(
-      'http://192.168.1.115:8080/api/user/logout',
-      { withCredentials: true }
-  ).then(response => {
-    if (response.status === 200) {
-      auth.logout()
-      router.push('/')
-    }
-  })
-  .catch(err => {
-    snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred during sign-up.'
-    snackbarColor.value = 'black'
-    snackbar.value = true
-    throw new Error(err || 'Logout failed.')
-  })
+const logout = () => {
+  auth.logout()
+  router.push('/')
 }
 </script>
 

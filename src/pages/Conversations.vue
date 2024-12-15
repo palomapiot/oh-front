@@ -106,6 +106,7 @@ function fetchConversations(): void {
     'http://192.168.1.115:8080/api/chats',
     { headers: { Authorization: `Bearer ${auth.user}` } },
   ).then(response => {
+    console.log(response.data)
     if (response.status === 200) {
       conversations.value = response.data.data.map((chat: any) => {
         const messages: Message[] = chat.Messages.map((msg: any) => ({

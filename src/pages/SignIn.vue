@@ -130,7 +130,6 @@ const submitForm = async () => {
         snackbar.value = true
     }
 }
-  
 </script>
 
 <style scoped>

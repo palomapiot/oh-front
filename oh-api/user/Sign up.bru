@@ -1,0 +1,18 @@
+meta {
+  name: Sign up
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://192.168.1.115:8080/api/user/signup
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "username",
+    "password": "password"
+  }
+}

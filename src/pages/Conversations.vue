@@ -32,10 +32,10 @@
           </v-card-title>
           <v-card-text class="d-flex flex-column conversation-text" style="height: 70vh; overflow-y: auto;">
             <div v-if="currentConversation">
-                <div v-for="(message, index) in currentConversation.messages" :key="index" :class="['message-wrapper', message.sender === 'user' ? 'user-wrapper' : 'bot-wrapper']">
+                <div v-for="(message, index) in currentConversation.messages" :key="index" :class="['message-wrapper', message.author === 'HUMAN' ? 'user-wrapper' : 'bot-wrapper']">
                     <!-- User's message rendering -->
                     <div
-                      v-if="message.sender === 'user'"
+                      v-if="message.author === 'HUMAN'"
                       class="user-message"
                       v-html="message.text"
                     ></div>
@@ -71,89 +71,118 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import DOMPurify from 'dompurify';
+import axios from 'axios'
+import { useAuthStore } from '@/stores/auth' 
 
-// TODO: load existing conversations
+const auth = useAuthStore()
 // TODO: send messages and add new responses
+const snackbar = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('')
 
 interface Message {
-  sender: 'user' | 'bot';
+  author: 'HUMAN' | 'GPT';
   text: string;
+  createdAt: string;
 }
 
 interface Conversation {
+  id: number;
   title: string;
   lastMessage: string;
+  createdAt: string;
   messages: Message[];
 }
 
-// Sample data for conversations
-const conversations = ref<Conversation[]>([
-  {
-    title: 'Conversation 1',
-    lastMessage: 'See you later!',
-    messages: [
-      { sender: 'user', text: 'Hello!' },
-      { sender: 'bot', text: 'Hi there!' },
-      { sender: 'user', text: 'How are you?' },
-      { sender: 'bot', text: 'I am fine, thank you!' },
-    ],
-  },
-  {
-    title: 'Conversation 2',
-    lastMessage: 'Let’s meet tomorrow.',
-    messages: [
-      { sender: 'user', text: 'Good morning!' },
-      { sender: 'bot', text: 'Good morning! How can I help you?' },
-    ],
-  },
-  {
-    title: 'Conversation 3',
-    lastMessage: 'That sounds great!',
-    messages: [
-      { sender: 'user', text: 'What do you think?' },
-      { sender: 'bot', text: 'I think it’s a good idea!' },
-    ],
-  },
-])
-
+const conversations = ref<Conversation[]>([])
 const selectedConversation = ref<Conversation | null>(null)
 const newMessage = ref('')
-
-// Computed property to get the currently selected conversation
 const currentConversation = computed<Conversation | null>(() => selectedConversation.value)
 
-// Method to select a conversation
+function fetchConversations(): void {
+  axios.post(
+    'http://192.168.1.115:8080/api/chats',
+    { headers: { Authorization: `Bearer ${auth.user}` } },
+    { withCredentials: true }
+  ).then(response => {
+    if (response.status === 200) {
+      conversations.value = response.data.data.map((chat: any) => {
+        const messages: Message[] = chat.Messages.map((msg: any) => ({
+          author: msg.Author,
+          text: msg.Text,
+          createdAt: msg.CreatedAt,
+        }));
+
+        return {
+          id: chat.ID,
+          title: `Conversation ${chat.ID}`,
+          lastMessage: messages[messages.length - 1]?.text || '',
+          createdAt: chat.CreatedAt,
+          messages,
+        };
+      });
+    } else {
+        throw new Error(response.data.message || 'Error fetching chat history.')
+    }
+  })
+  .catch(err => {
+    snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred while fetching chat history.'
+    snackbarColor.value = 'black'
+    snackbar.value = true
+    throw new Error(err || 'Error fetching chat history.')
+  })
+}
+
 const selectConversation = (conversation: Conversation) => {
   selectedConversation.value = conversation
 }
 
-// Method to send a message
-const sendMessage = () => {
+const sendMessage = async () => {
   if (newMessage.value.trim() && currentConversation.value) {
     const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
-
-    currentConversation.value.messages.push({
-      sender: 'user',
-      text: sanitizedMessage,
-    })
-    // Simulate bot response
-    currentConversation.value.messages.push({
-      sender: 'bot',
-      text: 'This is a simulated bot response!',
-    })
+    await axios.post(
+      'http://192.168.1.115:8080/api/user/login',
+      { chat_id: currentConversation.value.id, message: sanitizedMessage },
+      { withCredentials: true }
+    ).then(response => {
+            if (response.status === 200) {
+              currentConversation.value!.messages.push({
+                author: 'HUMAN',
+                text: sanitizedMessage,
+                createdAt: new Date().toISOString()
+              })
+              const gptMessage = response.data;
+              currentConversation.value!.messages.push({
+                author: 'GPT',
+                text: gptMessage.Text,
+                createdAt: gptMessage.CreatedAt || new Date().toISOString(),
+              });
+            } else {
+                throw new Error(response.data.message || 'Sending message failed.')
+            }
+        })
+        .catch(err => {
+            snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred while sending the message.'
+            snackbarColor.value = 'black'
+            snackbar.value = true
+            throw new Error(err || 'Sending message failed.')
+        })
     newMessage.value = ''
   }
 }
 
 const handleKeyDown = (event: KeyboardEvent) => {
-  // If the Enter key is pressed
   if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault(); 
       sendMessage(); 
   }
 };
+
+onMounted(() => {
+  fetchConversations();
+})
 </script>
 
 <style scoped>

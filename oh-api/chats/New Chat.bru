@@ -1,0 +1,21 @@
+meta {
+  name: New Chat
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://192.168.1.115:8080/api/chats/message
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "message": "Hello this is another new chat"
+  }
+}

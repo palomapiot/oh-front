@@ -36,7 +36,7 @@
     </v-row>
 
     <!-- Invitation to join -->
-    <v-row justify="center" class="invitation">
+    <v-row justify="center" class="invitation" v-if="auth.isLoggedIn" >
       <v-col cols="12" md="8" class="text-center">
         <h2>Join our community of content moderators!</h2>
         <p class="mb-4">Ready to get started? Sign in to your existing account or create a new one to access powerful features that will help you make social networks safer.</p>
@@ -50,7 +50,9 @@
   
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
+const auth = useAuthStore()
 const router = useRouter()
 
 const goToSignIn = () => {

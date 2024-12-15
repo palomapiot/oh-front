@@ -1,0 +1,19 @@
+meta {
+  name: Chats
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://192.168.1.115:8080/api/chats?limit=100
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 100
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

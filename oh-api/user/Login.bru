@@ -1,0 +1,18 @@
+meta {
+  name: Login
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://192.168.1.115:8080/api/user/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "paloma",
+    "password": "123456"
+  }
+}

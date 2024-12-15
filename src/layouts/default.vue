@@ -63,7 +63,6 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import axios from 'axios'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -85,6 +84,9 @@ const goToSignIn = () => {
   router.push('/signin')
 }
 const logout = () => {
+  snackbarMessage.value = 'Logout successful!'
+  snackbarColor.value = '#c6007e'
+  snackbar.value = true
   auth.logout()
   router.push('/')
 }

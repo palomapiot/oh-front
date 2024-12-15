@@ -102,10 +102,9 @@ const newMessage = ref('')
 const currentConversation = computed<Conversation | null>(() => selectedConversation.value)
 
 function fetchConversations(): void {
-  axios.post(
+  axios.get(
     'http://192.168.1.115:8080/api/chats',
     { headers: { Authorization: `Bearer ${auth.user}` } },
-    { withCredentials: true }
   ).then(response => {
     if (response.status === 200) {
       conversations.value = response.data.data.map((chat: any) => {

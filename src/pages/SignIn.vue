@@ -103,7 +103,8 @@ const submitForm = async () => {
     if (valid.value) {
         await axios.post(
             'http://192.168.1.115:8080/api/user/login',
-            { username: username.value, password: password.value }
+            { username: username.value, password: password.value },
+            { withCredentials: true }
         ).then(response => {
             if (response.status === 200) {
                 // Update global state for login

@@ -122,7 +122,8 @@ const submitForm = async () => {
     // Call the backend API
     await axios.post(
       'http://192.168.1.115:8080/api/user/signup',
-      { username: username.value, password: password.value }
+      { username: username.value, password: password.value },
+      { withCredentials: true }
     ).then(response => {
       // Handle success response
       if (response.status === 200) {

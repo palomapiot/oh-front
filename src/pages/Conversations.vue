@@ -143,7 +143,7 @@ const sendMessage = async () => {
   if (newMessage.value.trim() && currentConversation.value) {
     const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
     await axios.post(
-      'http://192.168.1.115:8080/api/user/login',
+      'http://192.168.1.115:8080/api/chats/message',
       { chat_id: currentConversation.value.id, message: sanitizedMessage },
       { headers: { Authorization: `Bearer ${auth.user}` }, withCredentials: true },
     ).then(response => {

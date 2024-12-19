@@ -103,7 +103,7 @@ const currentConversation = computed<Conversation | null>(() => selectedConversa
 
 function fetchConversations(): void {
   axios.get(
-    'http://192.168.1.115:8080/api/chats',
+    'http://192.168.1.122:8085/api/chats',
     { headers: { Authorization: `Bearer ${auth.user}` }, withCredentials: true },
   ).then(response => {
     console.log(response.data)
@@ -143,7 +143,7 @@ const sendMessage = async () => {
   if (newMessage.value.trim() && currentConversation.value) {
     const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
     await axios.post(
-      'http://192.168.1.115:8080/api/chats/message',
+      'http://192.168.1.122:8085/api/chats/message',
       { chat_id: currentConversation.value.id, message: sanitizedMessage },
       { headers: { Authorization: `Bearer ${auth.user}` }, withCredentials: true },
     ).then(response => {

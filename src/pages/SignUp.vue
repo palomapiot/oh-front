@@ -121,7 +121,7 @@ const submitForm = async () => {
   if (valid.value) {
     // Call the backend API
     await axios.post(
-      'http://192.168.1.122:8085/api/user/signup',
+      import.meta.env.BACKEND_URL + '/api/user/signup',
       { username: username.value, password: password.value },
       { withCredentials: true }
     ).then(response => {

@@ -103,8 +103,7 @@ const submitForm = async () => {
     if (valid.value) {
         await axios.post(
             import.meta.env.VITE_BACKEND_URL + '/api/user/login',
-            { username: username.value, password: password.value },
-            { withCredentials: true }
+            { username: username.value, password: password.value }
         ).then(response => {
             if (response.status === 200) {
                 // Update global state for login

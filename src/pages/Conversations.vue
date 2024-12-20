@@ -101,12 +101,11 @@ const selectedConversation = ref<Conversation | null>(null)
 const newMessage = ref('')
 const currentConversation = computed<Conversation | null>(() => selectedConversation.value)
 
-function fetchConversations(): void {
-  axios.get(
+const fetchConversations = async () => {
+  await axios.get(
     import.meta.env.VITE_BACKEND_URL + '/api/chats',
     { headers: { Authorization: `Bearer ${auth.user}` } },
   ).then(response => {
-    console.log(response.data)
     if (response.status === 200) {
       conversations.value = response.data.data.map((chat: any) => {
         const messages: Message[] = chat.Messages.map((msg: any) => ({
@@ -147,28 +146,41 @@ const sendMessage = async () => {
       { chat_id: currentConversation.value.id, message: sanitizedMessage },
       { headers: { Authorization: `Bearer ${auth.user}` } },
     ).then(response => {
-            if (response.status === 200) {
-              currentConversation.value!.messages.push({
-                author: 'HUMAN',
-                text: sanitizedMessage,
-                createdAt: new Date().toISOString()
-              })
-              const gptMessage = response.data;
-              currentConversation.value!.messages.push({
-                author: 'GPT',
-                text: gptMessage.Text,
-                createdAt: gptMessage.CreatedAt || new Date().toISOString(),
-              });
-            } else {
-                throw new Error(response.data.message || 'Sending message failed.')
+        if (response.status === 200) {
+          currentConversation.value!.messages.push({
+            author: 'HUMAN',
+            text: sanitizedMessage,
+            createdAt: new Date().toISOString()
+          })
+          const gptMessage = response.data;
+          currentConversation.value!.messages.push({
+            author: 'GPT',
+            text: gptMessage.Text,
+            createdAt: gptMessage.CreatedAt || new Date().toISOString(),
+          });
+
+          fetchConversations()
+          .then(r => {
+            if (currentConversation.value) {
+              const updatedConversation = conversations.value.find(
+                (conv) => conv.id === currentConversation.value?.id
+              );
+              if (updatedConversation) {
+                selectedConversation.value = updatedConversation;
+              }
             }
-        })
-        .catch(err => {
-            snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred while sending the message.'
-            snackbarColor.value = 'black'
-            snackbar.value = true
-            throw new Error(err || 'Sending message failed.')
-        })
+          });
+        newMessage.value = '';
+        } else {
+            throw new Error(response.data.message || 'Sending message failed.')
+        }
+    })
+    .catch(err => {
+        snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred while sending the message.'
+        snackbarColor.value = 'black'
+        snackbar.value = true
+        throw new Error(err || 'Sending message failed.')
+    })
     newMessage.value = ''
   } else if (newMessage.value.trim() && !currentConversation.value) {
     // No conversation selected --> create new conversation
@@ -178,28 +190,40 @@ const sendMessage = async () => {
       { message: sanitizedMessage },
       { headers: { Authorization: `Bearer ${auth.user}` } },
     ).then(response => {
-            if (response.status === 200) {
-              currentConversation.value!.messages.push({
-                author: 'HUMAN',
-                text: sanitizedMessage,
-                createdAt: new Date().toISOString()
-              })
-              const gptMessage = response.data;
-              currentConversation.value!.messages.push({
-                author: 'GPT',
-                text: gptMessage.Text,
-                createdAt: gptMessage.CreatedAt || new Date().toISOString(),
-              });
-            } else {
-                throw new Error(response.data.message || 'Sending message failed.')
+      if (response.status === 200) {
+        currentConversation.value?.messages.push({
+          author: 'HUMAN',
+          text: sanitizedMessage,
+          createdAt: new Date().toISOString()
+        })
+        const gptMessage = response.data;
+        currentConversation.value?.messages.push({
+          author: 'GPT',
+          text: gptMessage.Text,
+          createdAt: gptMessage.CreatedAt || new Date().toISOString(),
+        });
+        fetchConversations()
+        .then(r => {
+          if (currentConversation.value) {
+            const updatedConversation = conversations.value.find(
+              (conv) => conv.id === currentConversation.value?.id
+            );
+            if (updatedConversation) {
+              selectedConversation.value = updatedConversation;
             }
-        })
-        .catch(err => {
-            snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred while sending the message.'
-            snackbarColor.value = 'black'
-            snackbar.value = true
-            throw new Error(err || 'Sending message failed.')
-        })
+          }
+        });
+        newMessage.value = '';
+      } else {
+          throw new Error(response.data.message || 'Sending message failed.')
+      }
+    })
+    .catch(err => {
+        snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred while sending the message.'
+        snackbarColor.value = 'black'
+        snackbar.value = true
+        throw new Error(err || 'Sending message failed.')
+    })
   }
 }
 

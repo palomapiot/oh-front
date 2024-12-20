@@ -102,7 +102,7 @@ const passwordRules = [
 const submitForm = async () => {
     if (valid.value) {
         await axios.post(
-            import.meta.env.BACKEND_URL + '/api/user/login',
+            import.meta.env.VITE_BACKEND_URL + '/api/user/login',
             { username: username.value, password: password.value },
             { withCredentials: true }
         ).then(response => {

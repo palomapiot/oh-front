@@ -170,6 +170,36 @@ const sendMessage = async () => {
             throw new Error(err || 'Sending message failed.')
         })
     newMessage.value = ''
+  } else if (newMessage.value.trim() && !currentConversation.value) {
+    // No conversation selected --> create new conversation
+    const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
+    await axios.post(
+      import.meta.env.VITE_BACKEND_URL + '/api/chats/message',
+      { message: sanitizedMessage },
+      { headers: { Authorization: `Bearer ${auth.user}` } },
+    ).then(response => {
+            if (response.status === 200) {
+              currentConversation.value!.messages.push({
+                author: 'HUMAN',
+                text: sanitizedMessage,
+                createdAt: new Date().toISOString()
+              })
+              const gptMessage = response.data;
+              currentConversation.value!.messages.push({
+                author: 'GPT',
+                text: gptMessage.Text,
+                createdAt: gptMessage.CreatedAt || new Date().toISOString(),
+              });
+            } else {
+                throw new Error(response.data.message || 'Sending message failed.')
+            }
+        })
+        .catch(err => {
+            snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred while sending the message.'
+            snackbarColor.value = 'black'
+            snackbar.value = true
+            throw new Error(err || 'Sending message failed.')
+        })
   }
 }
 

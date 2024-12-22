@@ -17,6 +17,8 @@
 
     <!-- PNG images -->
     <img src="@/assets/IRLab.jpg" alt="IRLab" class="footer-image" />
+    <img src="@/assets/udc_logo.png" alt="UDC" class="footer-image" />
+    <img src="@/assets/citius_usc_logo.png" alt="CiTIUS USC" class="footer-image" />
     <img src="@/assets/hybrids.png" alt="HYRBIDS" class="footer-image" />
     <img src="@/assets/EU.png" alt="European Union" class="footer-image" />
 

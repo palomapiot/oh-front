@@ -210,10 +210,12 @@ const sendMessage = async () => {
             );
             if (updatedConversation) {
               selectedConversation.value = updatedConversation;
+
             }
           }
         });
         newMessage.value = '';
+        
       } else {
           throw new Error(response.data.message || 'Sending message failed.')
       }

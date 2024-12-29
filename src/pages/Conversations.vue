@@ -52,6 +52,12 @@
               <p>No conversation selected. Please select a conversation to start chatting.</p>
             </div>
           </v-card-text>
+          <div v-if="isLoading" class="loading-animation">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+
           <v-card-actions class="d-flex justify-end chat-input-actions">            
               <v-textarea
                 v-model="newMessage"
@@ -100,6 +106,7 @@ const conversations = ref<Conversation[]>([])
 const selectedConversation = ref<Conversation | null>(null)
 const newMessage = ref('')
 const currentConversation = computed<Conversation | null>(() => selectedConversation.value)
+const isLoading = ref(false);
 
 const fetchConversations = async () => {
   await axios.get(
@@ -141,24 +148,74 @@ const selectConversation = (conversation: Conversation) => {
 const sendMessage = async () => {
   if (newMessage.value.trim() && currentConversation.value) {
     const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
-    await axios.post(
-      import.meta.env.VITE_BACKEND_URL + '/api/chats/message',
-      { chat_id: currentConversation.value.id, message: sanitizedMessage },
-      { headers: { Authorization: `Bearer ${auth.user}` } },
-    ).then(response => {
+    isLoading.value = true;
+    try {
+      await axios.post(
+        import.meta.env.VITE_BACKEND_URL + '/api/chats/message',
+        { chat_id: currentConversation.value.id, message: sanitizedMessage },
+        { headers: { Authorization: `Bearer ${auth.user}` } },
+      ).then(response => {
+          if (response.status === 200) {
+            currentConversation.value!.messages.push({
+              author: 'HUMAN',
+              text: sanitizedMessage,
+              createdAt: new Date().toISOString()
+            })
+            const gptMessage = response.data;
+            currentConversation.value!.messages.push({
+              author: 'GPT',
+              text: gptMessage.Text,
+              createdAt: gptMessage.CreatedAt || new Date().toISOString(),
+            });
+
+            fetchConversations()
+            .then(r => {
+              if (currentConversation.value) {
+                const updatedConversation = conversations.value.find(
+                  (conv) => conv.id === currentConversation.value?.id
+                );
+                if (updatedConversation) {
+                  selectedConversation.value = updatedConversation;
+                }
+              }
+            });
+          newMessage.value = '';
+          } else {
+              throw new Error(response.data.message || 'Sending message failed.')
+          }
+      })
+      .catch(err => {
+          snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred while sending the message.'
+          snackbarColor.value = 'black'
+          snackbar.value = true
+          throw new Error(err || 'Sending message failed.')
+      })
+    } finally {
+      isLoading.value = false; // Stop loading animation
+    }
+    newMessage.value = ''
+  } else if (newMessage.value.trim() && !currentConversation.value) {
+    // No conversation selected --> create new conversation
+    const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
+    isLoading.value = true;
+    try {
+      await axios.post(
+        import.meta.env.VITE_BACKEND_URL + '/api/chats/message',
+        { message: sanitizedMessage },
+        { headers: { Authorization: `Bearer ${auth.user}` } },
+      ).then(response => {
         if (response.status === 200) {
-          currentConversation.value!.messages.push({
+          currentConversation.value?.messages.push({
             author: 'HUMAN',
             text: sanitizedMessage,
             createdAt: new Date().toISOString()
           })
           const gptMessage = response.data;
-          currentConversation.value!.messages.push({
+          currentConversation.value?.messages.push({
             author: 'GPT',
             text: gptMessage.Text,
             createdAt: gptMessage.CreatedAt || new Date().toISOString(),
           });
-
           fetchConversations()
           .then(r => {
             if (currentConversation.value) {
@@ -167,65 +224,25 @@ const sendMessage = async () => {
               );
               if (updatedConversation) {
                 selectedConversation.value = updatedConversation;
+
               }
             }
           });
-        newMessage.value = '';
+          newMessage.value = '';
+          
         } else {
             throw new Error(response.data.message || 'Sending message failed.')
         }
-    })
-    .catch(err => {
-        snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred while sending the message.'
-        snackbarColor.value = 'black'
-        snackbar.value = true
-        throw new Error(err || 'Sending message failed.')
-    })
-    newMessage.value = ''
-  } else if (newMessage.value.trim() && !currentConversation.value) {
-    // No conversation selected --> create new conversation
-    const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
-    await axios.post(
-      import.meta.env.VITE_BACKEND_URL + '/api/chats/message',
-      { message: sanitizedMessage },
-      { headers: { Authorization: `Bearer ${auth.user}` } },
-    ).then(response => {
-      if (response.status === 200) {
-        currentConversation.value?.messages.push({
-          author: 'HUMAN',
-          text: sanitizedMessage,
-          createdAt: new Date().toISOString()
-        })
-        const gptMessage = response.data;
-        currentConversation.value?.messages.push({
-          author: 'GPT',
-          text: gptMessage.Text,
-          createdAt: gptMessage.CreatedAt || new Date().toISOString(),
-        });
-        fetchConversations()
-        .then(r => {
-          if (currentConversation.value) {
-            const updatedConversation = conversations.value.find(
-              (conv) => conv.id === currentConversation.value?.id
-            );
-            if (updatedConversation) {
-              selectedConversation.value = updatedConversation;
-
-            }
-          }
-        });
-        newMessage.value = '';
-        
-      } else {
-          throw new Error(response.data.message || 'Sending message failed.')
-      }
-    })
-    .catch(err => {
-        snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred while sending the message.'
-        snackbarColor.value = 'black'
-        snackbar.value = true
-        throw new Error(err || 'Sending message failed.')
-    })
+      })
+      .catch(err => {
+          snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred while sending the message.'
+          snackbarColor.value = 'black'
+          snackbar.value = true
+          throw new Error(err || 'Sending message failed.')
+      })
+    } finally {
+      isLoading.value = false; // Stop loading animation
+    }
   }
 }
 
@@ -303,6 +320,39 @@ onMounted(() => {
 .user-message, .bot-message {
   white-space: pre-wrap; /* Preserves spaces and line breaks */
   word-wrap: break-word; /* Ensures long words are wrapped */
+}
+
+.loading-animation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  margin: 0 4px;
+  background-color: #c6007e;
+  border-radius: 50%;
+  animation: bounce 1.5s infinite;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
 }
 
 </style>

@@ -185,12 +185,11 @@ const mapAuthorToEnum = (author: string): Author => {
 const fetchConversations = async () => {
   try {
     const response = await axios.get(
-      import.meta.env.VITE_BACKEND_URL + '/api/chats',
+      import.meta.env.VITE_BACKEND_URL + '/api/chats?limit=5000',
       { headers: { Authorization: `Bearer ${auth.user}` } },
     );
 
     if (response.status === 200) {
-      console.log(response.data.data)
       conversations.value = response.data.data.map((chat: any) => {
         const messages: Message[] = chat.Messages ? chat.Messages.map((msg: any) => ({
           author: mapAuthorToEnum(msg.Author),
@@ -206,7 +205,6 @@ const fetchConversations = async () => {
           messages,
         };
       });
-      console.log(conversations.value)
     } else {
       throw new Error(response.data.message || 'Error fetching chat history.');
     }

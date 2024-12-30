@@ -117,6 +117,16 @@ const newMessage = ref('')
 const currentConversation = computed<Conversation | null>(() => selectedConversation.value)
 const isLoading = ref(false);
 
+function createDefaultConversation(): Conversation {
+  return {
+    id: Date.now(),
+    title: '',
+    lastMessage: '',
+    createdAt: new Date().toISOString(),
+    messages: [],
+  };
+}
+
 const fetchConversations = async () => {
   await axios.get(
     import.meta.env.VITE_BACKEND_URL + '/api/chats',
@@ -205,6 +215,7 @@ const sendMessage = async () => {
   } else if (newMessage.value.trim() && !currentConversation.value) {
     // No conversation selected --> create new conversation
     const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
+    createDefaultConversation()
     currentConversation.value!.messages.push({
       author: 'HUMAN',
       text: sanitizedMessage,
@@ -233,7 +244,6 @@ const sendMessage = async () => {
               );
               if (updatedConversation) {
                 selectedConversation.value = updatedConversation;
-
               }
             }
           });

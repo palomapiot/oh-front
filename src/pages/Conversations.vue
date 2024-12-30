@@ -171,6 +171,17 @@ const currentConversation = computed<Conversation>(() => {
   })
 }*/
 
+const mapAuthorToEnum = (author: string): Author => {
+  switch (author) {
+    case 'HUMAN':
+      return Author.HUMAN;
+    case 'GPT':
+      return Author.GPT;
+    default:
+      throw new Error(`Unknown author: ${author}`);
+  }
+}
+
 const fetchConversations = async () => {
   try {
     const response = await axios.get(
@@ -179,11 +190,9 @@ const fetchConversations = async () => {
     );
 
     if (response.status === 200) {
-      // Map the response to your local state
       conversations.value = response.data.data.map((chat: any) => {
-        // Ensure to handle cases where Messages might be undefined
         const messages: Message[] = chat.Messages ? chat.Messages.map((msg: any) => ({
-          author: msg.Author,
+          author: mapAuthorToEnum(msg.Author),
           text: msg.Text,
           createdAt: msg.CreatedAt,
         })) : [];
@@ -200,7 +209,6 @@ const fetchConversations = async () => {
       throw new Error(response.data.message || 'Error fetching chat history.');
     }
   } catch (err) {
-    // Type the error as AxiosError to access its properties
     if (axios.isAxiosError(err)) {
       const errorMessage = err.response?.data?.error || 'An error occurred while fetching chat history.';
       snackbarMessage.value = 'Error: ' + errorMessage;
@@ -209,7 +217,6 @@ const fetchConversations = async () => {
     }
     snackbarColor.value = 'black';
     snackbar.value = true;
-    console.error(err); // Log the error for debugging
   }
 }
 

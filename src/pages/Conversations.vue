@@ -119,7 +119,6 @@ interface Conversation {
 const conversations = ref<Conversation[]>([])
 const selectedConversation = ref<Conversation | null>(null)
 const newMessage = ref('')
-//const currentConversation = computed<Conversation | null>(() => selectedConversation.value)
 const isLoading = ref(false);
 
 function createDefaultConversation(): Conversation {
@@ -139,8 +138,7 @@ const currentConversation = computed<Conversation>(() => {
   return createDefaultConversation();
 });
 
-
-const fetchConversations = async () => {
+/*const fetchConversations = async () => {
   await axios.get(
     import.meta.env.VITE_BACKEND_URL + '/api/chats',
     { headers: { Authorization: `Bearer ${auth.user}` } },
@@ -171,119 +169,59 @@ const fetchConversations = async () => {
     snackbar.value = true
     throw new Error(err || 'Error fetching chat history.')
   })
+}*/
+
+const fetchConversations = async () => {
+  try {
+    const response = await axios.get(
+      import.meta.env.VITE_BACKEND_URL + '/api/chats',
+      { headers: { Authorization: `Bearer ${auth.user}` } },
+    );
+
+    if (response.status === 200) {
+      // Map the response to your local state
+      conversations.value = response.data.data.map((chat: any) => {
+        // Ensure to handle cases where Messages might be undefined
+        const messages: Message[] = chat.Messages ? chat.Messages.map((msg: any) => ({
+          author: msg.Author,
+          text: msg.Text,
+          createdAt: msg.CreatedAt,
+        })) : [];
+
+        return {
+          id: chat.ID,
+          title: `Conversation ${chat.ID}`,
+          lastMessage: messages.length > 0 ? messages[messages.length - 1].text : '',
+          createdAt: chat.CreatedAt,
+          messages,
+        };
+      });
+    } else {
+      throw new Error(response.data.message || 'Error fetching chat history.');
+    }
+  } catch (err) {
+    // Type the error as AxiosError to access its properties
+    if (axios.isAxiosError(err)) {
+      const errorMessage = err.response?.data?.error || 'An error occurred while fetching chat history.';
+      snackbarMessage.value = 'Error: ' + errorMessage;
+    } else {
+      snackbarMessage.value = 'Error: An unexpected error occurred.';
+    }
+    snackbarColor.value = 'black';
+    snackbar.value = true;
+    console.error(err); // Log the error for debugging
+  }
 }
 
 const selectConversation = (conversation: Conversation) => {
   selectedConversation.value = conversation
 }
 
-/*const sendMessage = async () => {
-  if (newMessage.value.trim() && currentConversation.value.id != 0) {
-    const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
-    currentConversation.value!.messages.push({
-      author: 'HUMAN',
-      text: sanitizedMessage,
-      createdAt: new Date().toISOString()
-    })
-    currentConversation.value.lastMessage = sanitizedMessage;
-    newMessage.value = ''
-    isLoading.value = true;
-    try {
-      await axios.post(
-        import.meta.env.VITE_BACKEND_URL + '/api/chats/message',
-        { chat_id: currentConversation.value.id, message: sanitizedMessage },
-        { headers: { Authorization: `Bearer ${auth.user}` } },
-      ).then(response => {
-          if (response.status === 200) {
-            const gptMessage = response.data;
-            currentConversation.value!.messages.push({
-              author: 'GPT',
-              text: gptMessage.Text,
-              createdAt: gptMessage.CreatedAt || new Date().toISOString(),
-            });
-            fetchConversations()
-            .then(r => {
-              if (currentConversation.value) {
-                const updatedConversation = conversations.value.find(
-                  (conv) => conv.id === currentConversation.value?.id
-                );
-                if (updatedConversation) {
-                  selectedConversation.value = updatedConversation;
-                }
-              }
-            });
-          } else {
-              throw new Error(response.data.message || 'Sending message failed.')
-          }
-      })
-      .catch(err => {
-          snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred while sending the message.'
-          snackbarColor.value = 'black'
-          snackbar.value = true
-          throw new Error(err || 'Sending message failed.')
-      })
-    } finally {
-      isLoading.value = false; // Stop loading animation
-    }
-  } else if (newMessage.value.trim() && currentConversation.value.id == 0) {
-    // No conversation selected --> create new conversation
-    const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
-    currentConversation.value.messages.push({
-      author: 'HUMAN',
-      text: sanitizedMessage,
-      createdAt: new Date().toISOString()
-    })
-    currentConversation.value.lastMessage = sanitizedMessage;
-    newMessage.value = ''
-    isLoading.value = true;
-    try {
-      await axios.post(
-        import.meta.env.VITE_BACKEND_URL + '/api/chats/message',
-        { message: sanitizedMessage },
-        { headers: { Authorization: `Bearer ${auth.user}` } },
-      ).then(response => {
-        if (response.status === 200) {
-          const gptMessage = response.data;
-          currentConversation.value!.messages.push({
-            author: 'GPT',
-            text: gptMessage.Text,
-            createdAt: gptMessage.CreatedAt || new Date().toISOString(),
-          });
-          fetchConversations()
-          .then(r => {
-            if (currentConversation.value) {
-              const updatedConversation = conversations.value.find(
-                (conv) => conv.id === currentConversation.value?.id
-              );
-              if (updatedConversation) {
-                selectedConversation.value = updatedConversation;
-              }
-            }
-          });
-        } else {
-            throw new Error(response.data.message || 'Sending message failed.')
-        }
-      })
-      .catch(err => {
-          snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred while sending the message.'
-          snackbarColor.value = 'black'
-          snackbar.value = true
-          throw new Error(err || 'Sending message failed.')
-      })
-    } finally {
-      isLoading.value = false; // Stop loading animation
-    }
-  }
-}*/
-
 const sendMessage = async () => {
   const sanitizedMessage = DOMPurify.sanitize(newMessage.value.trim());
   if (sanitizedMessage) {
-    // Add the human message to the current conversation
     addMessageToConversation(Author.HUMAN, sanitizedMessage);
-
-    isLoading.value = true; // Start loading animation
-
+    isLoading.value = true;
     try {
       const payload = currentConversation.value.id !== 0 
         ? { chat_id: currentConversation.value.id, message: sanitizedMessage }
@@ -297,21 +235,16 @@ const sendMessage = async () => {
 
       if (response.status === 200) {
         const gptMessage = response.data;
-
-        // Check if a new conversation was returned and update accordingly
         if (currentConversation.value.id === 0) {
           const newConversation: Conversation = {
-            id: response.data.id, // assuming the response contains the new conversation ID
+            id: response.data.id,
             title: `Conversation ${response.data.id}`,
-            lastMessage: sanitizedMessage, // Set the last message to the sent message
+            lastMessage: sanitizedMessage,
             createdAt: new Date().toISOString(),
             messages: [],
           };
-
-          // Update selected conversation to reflect the new conversation
           selectedConversation.value = newConversation;
         }
-
         addMessageToConversation(Author.GPT, gptMessage.Text, gptMessage.CreatedAt);
         await updateSelectedConversation();
       } else {
@@ -320,7 +253,7 @@ const sendMessage = async () => {
     } catch (err) {
       handleError(err);
     } finally {
-      isLoading.value = false; // Stop loading animation
+      isLoading.value = false;
     }
   }
 }
@@ -331,7 +264,6 @@ const addMessageToConversation = (author: Author, text: string, createdAt?: stri
     text,
     createdAt: createdAt || new Date().toISOString(),
   };
-  // Check if currentConversation exists before pushing to messages
   if (currentConversation.value) {
     currentConversation.value.messages.push(message);
     currentConversation.value.lastMessage = text;

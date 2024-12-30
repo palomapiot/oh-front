@@ -297,6 +297,21 @@ const sendMessage = async () => {
 
       if (response.status === 200) {
         const gptMessage = response.data;
+
+        // Check if a new conversation was returned and update accordingly
+        if (currentConversation.value.id === 0) {
+          const newConversation: Conversation = {
+            id: response.data.id, // assuming the response contains the new conversation ID
+            title: `Conversation ${response.data.id}`,
+            lastMessage: sanitizedMessage, // Set the last message to the sent message
+            createdAt: new Date().toISOString(),
+            messages: [],
+          };
+
+          // Update selected conversation to reflect the new conversation
+          selectedConversation.value = newConversation;
+        }
+
         addMessageToConversation(Author.GPT, gptMessage.Text, gptMessage.CreatedAt);
         await updateSelectedConversation();
       } else {
@@ -316,8 +331,11 @@ const addMessageToConversation = (author: Author, text: string, createdAt?: stri
     text,
     createdAt: createdAt || new Date().toISOString(),
   };
-  currentConversation.value.messages.push(message);
-  currentConversation.value.lastMessage = text;
+  // Check if currentConversation exists before pushing to messages
+  if (currentConversation.value) {
+    currentConversation.value.messages.push(message);
+    currentConversation.value.lastMessage = text;
+  }
   newMessage.value = ''; // Clear input
 }
 

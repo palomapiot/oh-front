@@ -114,18 +114,26 @@ interface Conversation {
 const conversations = ref<Conversation[]>([])
 const selectedConversation = ref<Conversation | null>(null)
 const newMessage = ref('')
-const currentConversation = computed<Conversation | null>(() => selectedConversation.value)
+//const currentConversation = computed<Conversation | null>(() => selectedConversation.value)
 const isLoading = ref(false);
 
 function createDefaultConversation(): Conversation {
   return {
-    id: Date.now(),
+    id: -1,
     title: '',
     lastMessage: '',
     createdAt: new Date().toISOString(),
     messages: [],
   };
 }
+
+const currentConversation = computed<Conversation>(() => {
+  if (selectedConversation.value) {
+    return selectedConversation.value;
+  }
+  return createDefaultConversation();
+});
+
 
 const fetchConversations = async () => {
   await axios.get(
@@ -172,6 +180,7 @@ const sendMessage = async () => {
       text: sanitizedMessage,
       createdAt: new Date().toISOString()
     })
+    currentConversation.value.lastMessage = sanitizedMessage;
     newMessage.value = ''
     isLoading.value = true;
     try {
@@ -212,15 +221,15 @@ const sendMessage = async () => {
     } finally {
       isLoading.value = false; // Stop loading animation
     }
-  } else if (newMessage.value.trim() && !currentConversation.value) {
+  } else if (newMessage.value.trim() && currentConversation.value.id == -1) {
     // No conversation selected --> create new conversation
     const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
-    selectedConversation.value = createDefaultConversation()
-    currentConversation.value!.messages.push({
+    currentConversation.value.messages.push({
       author: 'HUMAN',
       text: sanitizedMessage,
       createdAt: new Date().toISOString()
     })
+    currentConversation.value.lastMessage = sanitizedMessage;
     newMessage.value = ''
     isLoading.value = true;
     try {
@@ -231,7 +240,7 @@ const sendMessage = async () => {
       ).then(response => {
         if (response.status === 200) {
           const gptMessage = response.data;
-          currentConversation.value?.messages.push({
+          currentConversation.value!.messages.push({
             author: 'GPT',
             text: gptMessage.Text,
             createdAt: gptMessage.CreatedAt || new Date().toISOString(),

@@ -68,7 +68,17 @@
                 class="flex-grow-1  integrated-input"
                 @keydown="handleKeyDown"
               />
-            <v-btn @click="sendMessage" color="primary">Send</v-btn>
+            <v-btn 
+              @click="sendMessage" 
+              :disabled="isLoading" 
+              :loading="isLoading" 
+              color="primary">
+              <template v-slot:default>
+                <span v-if="!isLoading">Send</span>
+              </template>
+            </v-btn>
+
+
           </v-card-actions>
         </v-card>
       </v-col>
@@ -83,7 +93,6 @@ import axios from 'axios'
 import { useAuthStore } from '@/stores/auth' 
 
 const auth = useAuthStore()
-// TODO: send messages and add new responses
 const snackbar = ref(false)
 const snackbarMessage = ref('')
 const snackbarColor = ref('')
@@ -148,6 +157,7 @@ const selectConversation = (conversation: Conversation) => {
 const sendMessage = async () => {
   if (newMessage.value.trim() && currentConversation.value) {
     const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
+    newMessage.value = ''
     isLoading.value = true;
     try {
       await axios.post(
@@ -179,7 +189,6 @@ const sendMessage = async () => {
                 }
               }
             });
-          newMessage.value = '';
           } else {
               throw new Error(response.data.message || 'Sending message failed.')
           }
@@ -193,10 +202,10 @@ const sendMessage = async () => {
     } finally {
       isLoading.value = false; // Stop loading animation
     }
-    newMessage.value = ''
   } else if (newMessage.value.trim() && !currentConversation.value) {
     // No conversation selected --> create new conversation
     const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
+    newMessage.value = ''
     isLoading.value = true;
     try {
       await axios.post(
@@ -228,8 +237,6 @@ const sendMessage = async () => {
               }
             }
           });
-          newMessage.value = '';
-          
         } else {
             throw new Error(response.data.message || 'Sending message failed.')
         }
@@ -327,6 +334,7 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   margin-top: 16px;
+  margin-bottom: 16px;
 }
 
 .dot {

@@ -119,7 +119,7 @@ const isLoading = ref(false);
 
 function createDefaultConversation(): Conversation {
   return {
-    id: -1,
+    id: 0,
     title: '',
     lastMessage: '',
     createdAt: new Date().toISOString(),
@@ -173,7 +173,7 @@ const selectConversation = (conversation: Conversation) => {
 }
 
 const sendMessage = async () => {
-  if (newMessage.value.trim() && currentConversation.value.id != -1) {
+  if (newMessage.value.trim() && currentConversation.value.id != 0) {
     const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
     currentConversation.value!.messages.push({
       author: 'HUMAN',
@@ -221,7 +221,7 @@ const sendMessage = async () => {
     } finally {
       isLoading.value = false; // Stop loading animation
     }
-  } else if (newMessage.value.trim() && currentConversation.value.id == -1) {
+  } else if (newMessage.value.trim() && currentConversation.value.id == 0) {
     // No conversation selected --> create new conversation
     const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
     currentConversation.value.messages.push({

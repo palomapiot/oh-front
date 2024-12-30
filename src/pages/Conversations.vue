@@ -173,7 +173,7 @@ const selectConversation = (conversation: Conversation) => {
 }
 
 const sendMessage = async () => {
-  if (newMessage.value.trim() && currentConversation.value) {
+  if (newMessage.value.trim() && currentConversation.value.id != -1) {
     const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
     currentConversation.value!.messages.push({
       author: 'HUMAN',

@@ -20,9 +20,12 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore() // Use your auth store
   const isLoggedIn = authStore.isLoggedIn // Check if the user is logged in
 
-  // Check if the route requires authentication
-  if (to.path === '/conversations' && !isLoggedIn) {
-    next({ name: '/SignIn' }) // Redirect to Sign In if not logged in
+  // Define routes that require authentication
+  const protectedRoutes = ['/conversations']
+
+  // Check if the user is accessing a protected route
+  if (protectedRoutes.includes(to.path) && !isLoggedIn) {
+    next({ path: '/SignIn' }) // Redirect to Sign In if not logged in
   } else {
     next() // Proceed to the requested route
   }

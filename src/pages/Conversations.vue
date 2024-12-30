@@ -138,39 +138,6 @@ const currentConversation = computed<Conversation>(() => {
   return createDefaultConversation();
 });
 
-/*const fetchConversations = async () => {
-  await axios.get(
-    import.meta.env.VITE_BACKEND_URL + '/api/chats',
-    { headers: { Authorization: `Bearer ${auth.user}` } },
-  ).then(response => {
-    if (response.status === 200) {
-      conversations.value = response.data.data.map((chat: any) => {
-        const messages: Message[] = chat.Messages.map((msg: any) => ({
-          author: msg.Author,
-          text: msg.Text,
-          createdAt: msg.CreatedAt,
-        }));
-
-        return {
-          id: chat.ID,
-          title: `Conversation ${chat.ID}`,
-          lastMessage: messages[messages.length - 1]?.text || '',
-          createdAt: chat.CreatedAt,
-          messages,
-        };
-      });
-    } else {
-        throw new Error(response.data.message || 'Error fetching chat history.')
-    }
-  })
-  .catch(err => {
-    snackbarMessage.value = 'Error: ' + err.response.data.error || 'An error occurred while fetching chat history.'
-    snackbarColor.value = 'black'
-    snackbar.value = true
-    throw new Error(err || 'Error fetching chat history.')
-  })
-}*/
-
 const mapAuthorToEnum = (author: string): Author => {
   switch (author) {
     case 'HUMAN':
@@ -243,12 +210,17 @@ const sendMessage = async () => {
       if (response.status === 200) {
         const gptMessage = response.data;
         if (currentConversation.value.id === 0) {
+          const message: Message = {
+            author: Author.HUMAN,
+            text: sanitizedMessage,
+            createdAt: new Date().toISOString(),
+          };
           const newConversation: Conversation = {
             id: response.data.id,
             title: `Conversation ${response.data.id}`,
             lastMessage: sanitizedMessage,
             createdAt: new Date().toISOString(),
-            messages: [],
+            messages: [message],
           };
           selectedConversation.value = newConversation;
         }
@@ -295,7 +267,6 @@ const updateSelectedConversation = async () => {
     }
   }
 }
-
 
 const handleKeyDown = (event: KeyboardEvent) => {
   if (event.key === "Enter" && !event.shiftKey) {

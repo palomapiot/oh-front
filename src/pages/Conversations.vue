@@ -190,6 +190,7 @@ const fetchConversations = async () => {
     );
 
     if (response.status === 200) {
+      console.log(response.data.data)
       conversations.value = response.data.data.map((chat: any) => {
         const messages: Message[] = chat.Messages ? chat.Messages.map((msg: any) => ({
           author: mapAuthorToEnum(msg.Author),
@@ -205,6 +206,7 @@ const fetchConversations = async () => {
           messages,
         };
       });
+      console.log(conversations.value)
     } else {
       throw new Error(response.data.message || 'Error fetching chat history.');
     }
@@ -275,7 +277,7 @@ const addMessageToConversation = (author: Author, text: string, createdAt?: stri
     currentConversation.value.messages.push(message);
     currentConversation.value.lastMessage = text;
   }
-  newMessage.value = ''; // Clear input
+  newMessage.value = '';
 }
 
 const handleError = (err: any) => {

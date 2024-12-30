@@ -97,8 +97,13 @@ const snackbar = ref(false)
 const snackbarMessage = ref('')
 const snackbarColor = ref('')
 
+enum Author {
+  HUMAN = 'HUMAN',
+  GPT = 'GPT',
+}
+
 interface Message {
-  author: 'HUMAN' | 'GPT';
+  author: Author;
   text: string;
   createdAt: string;
 }
@@ -172,7 +177,7 @@ const selectConversation = (conversation: Conversation) => {
   selectedConversation.value = conversation
 }
 
-const sendMessage = async () => {
+/*const sendMessage = async () => {
   if (newMessage.value.trim() && currentConversation.value.id != 0) {
     const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
     currentConversation.value!.messages.push({
@@ -196,7 +201,6 @@ const sendMessage = async () => {
               text: gptMessage.Text,
               createdAt: gptMessage.CreatedAt || new Date().toISOString(),
             });
-
             fetchConversations()
             .then(r => {
               if (currentConversation.value) {
@@ -270,7 +274,71 @@ const sendMessage = async () => {
       isLoading.value = false; // Stop loading animation
     }
   }
+}*/
+
+const sendMessage = async () => {
+  const sanitizedMessage = DOMPurify.sanitize(newMessage.value.trim());
+  if (sanitizedMessage) {
+    // Add the human message to the current conversation
+    addMessageToConversation(Author.HUMAN, sanitizedMessage);
+
+    isLoading.value = true; // Start loading animation
+
+    try {
+      const payload = currentConversation.value.id !== 0 
+        ? { chat_id: currentConversation.value.id, message: sanitizedMessage }
+        : { message: sanitizedMessage };
+
+      const response = await axios.post(
+        import.meta.env.VITE_BACKEND_URL + '/api/chats/message',
+        payload,
+        { headers: { Authorization: `Bearer ${auth.user}` } },
+      );
+
+      if (response.status === 200) {
+        const gptMessage = response.data;
+        addMessageToConversation(Author.GPT, gptMessage.Text, gptMessage.CreatedAt);
+        await updateSelectedConversation();
+      } else {
+        throw new Error(response.data.message || 'Sending message failed.');
+      }
+    } catch (err) {
+      handleError(err);
+    } finally {
+      isLoading.value = false; // Stop loading animation
+    }
+  }
 }
+
+const addMessageToConversation = (author: Author, text: string, createdAt?: string) => {
+  const message: Message = {
+    author,
+    text,
+    createdAt: createdAt || new Date().toISOString(),
+  };
+  currentConversation.value.messages.push(message);
+  currentConversation.value.lastMessage = text;
+  newMessage.value = ''; // Clear input
+}
+
+const handleError = (err: any) => {
+  snackbarMessage.value = 'Error: ' + (err.response?.data?.error || 'An error occurred while sending the message.');
+  snackbarColor.value = 'black';
+  snackbar.value = true;
+}
+
+const updateSelectedConversation = async () => {
+  await fetchConversations();
+  if (currentConversation.value) {
+    const updatedConversation = conversations.value.find(
+      (conv) => conv.id === currentConversation.value.id
+    );
+    if (updatedConversation) {
+      selectedConversation.value = updatedConversation;
+    }
+  }
+}
+
 
 const handleKeyDown = (event: KeyboardEvent) => {
   if (event.key === "Enter" && !event.shiftKey) {

@@ -32,10 +32,10 @@
           </v-card-title>
           <v-card-text class="d-flex flex-column conversation-text" style="height: 70vh; overflow-y: auto;">
             <div v-if="currentConversation">
-                <div v-for="(message, index) in currentConversation.messages" :key="index" :class="['message-wrapper', message.author === 'HUMAN' ? 'user-wrapper' : 'bot-wrapper']">
+                <div v-for="(message, index) in currentConversation.messages" :key="index" :class="['message-wrapper', message.author === Author.HUMAN ? 'user-wrapper' : 'bot-wrapper']">
                     <!-- User's message rendering -->
                     <div
-                      v-if="message.author === 'HUMAN'"
+                      v-if="message.author === Author.HUMAN"
                       class="user-message"
                       v-html="message.text"
                     ></div>

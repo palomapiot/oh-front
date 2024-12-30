@@ -157,6 +157,11 @@ const selectConversation = (conversation: Conversation) => {
 const sendMessage = async () => {
   if (newMessage.value.trim() && currentConversation.value) {
     const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
+    currentConversation.value!.messages.push({
+      author: 'HUMAN',
+      text: sanitizedMessage,
+      createdAt: new Date().toISOString()
+    })
     newMessage.value = ''
     isLoading.value = true;
     try {
@@ -166,11 +171,6 @@ const sendMessage = async () => {
         { headers: { Authorization: `Bearer ${auth.user}` } },
       ).then(response => {
           if (response.status === 200) {
-            currentConversation.value!.messages.push({
-              author: 'HUMAN',
-              text: sanitizedMessage,
-              createdAt: new Date().toISOString()
-            })
             const gptMessage = response.data;
             currentConversation.value!.messages.push({
               author: 'GPT',
@@ -205,6 +205,11 @@ const sendMessage = async () => {
   } else if (newMessage.value.trim() && !currentConversation.value) {
     // No conversation selected --> create new conversation
     const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
+    currentConversation.value!.messages.push({
+      author: 'HUMAN',
+      text: sanitizedMessage,
+      createdAt: new Date().toISOString()
+    })
     newMessage.value = ''
     isLoading.value = true;
     try {
@@ -214,11 +219,6 @@ const sendMessage = async () => {
         { headers: { Authorization: `Bearer ${auth.user}` } },
       ).then(response => {
         if (response.status === 200) {
-          currentConversation.value?.messages.push({
-            author: 'HUMAN',
-            text: sanitizedMessage,
-            createdAt: new Date().toISOString()
-          })
           const gptMessage = response.data;
           currentConversation.value?.messages.push({
             author: 'GPT',

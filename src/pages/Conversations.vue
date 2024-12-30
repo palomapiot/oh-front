@@ -215,7 +215,7 @@ const sendMessage = async () => {
   } else if (newMessage.value.trim() && !currentConversation.value) {
     // No conversation selected --> create new conversation
     const sanitizedMessage = DOMPurify.sanitize(newMessage.value);
-    createDefaultConversation()
+    selectedConversation.value = createDefaultConversation()
     currentConversation.value!.messages.push({
       author: 'HUMAN',
       text: sanitizedMessage,
